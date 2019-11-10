@@ -1,7 +1,7 @@
 
 class Ships:
     def __init__(self, leng, status, cord):
-        self.status = status or 'live'
+        self.status = status or 'not a board'
         self.leng = leng
         self.cord = cord
 
@@ -74,29 +74,38 @@ class Board:
                     self.board[f'{self.__y[j]}{self.__x[i]}'] = 0
 
 
-    def addShips(self,ship,leng,*pos):
+    def addShips(self,ship,*pos):
         """
         добавляет корабль на доску, если он соответсвует правилам
         :param leng: длина корабля
         :param pos: позиции корабля
         :return: None
         """
-        if leng == len(pos):
-            if leng <= len(self.__shipsorder):
-                if self.__shipsorder[f'{leng} size'] > self.shipslive[f'{leng} size']:
+        if not self.flag:
+            return 'you not change board, after start'
+        if ship.leng == len(pos):
+            if ship.leng <= len(self.__shipsorder):
+                if self.__shipsorder[f'{ship.leng} size'] > self.shipslive[f'{ship.leng} size']:
                     if Board.cheks_ship(self, *pos):
                         ship.cord = pos
+                        ship.status = 'live'
                         for i in pos:
                             self.board[i] = ship
-                            self.shipslive[f'{leng} size'] += 1
 
-                    # elif leng == 1:
-                    #     cords = list(startpos)
-                    #     if Board.cheks_ship(self, *cords):
-                    #         self.__board[startpos] = 'live'
-                    #         self.__shipslive[f'{leng} size'] += 1
+                        return 'ship enabled'
         else:
             print("Strange input")
+
+    def remove_ship(self,ship):
+        if self.flag:
+            return 'you not remove ship, after start'
+        if ship.status == 'live':
+            self.shipslive[f'{ship.leng} size'] -= 1
+            ship.status = 'not a board'
+            for i in ship.cord:
+                self.board[i] = 0
+            return 'ship remove'
+
 
     def shot(self,cord):
         f = self.board.get(cord)
