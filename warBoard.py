@@ -1,24 +1,40 @@
-def grey_zone(e, y):
-    #print(e,y)
-    if y.index(e) == 0:
-        return y[0:2]
-    else:
-        return y[y.index(e) - 1:y.index(e) + 2]
+
 class Ships:
     def __init__(self, leng, status, cord):
         self.status = status or 'live'
         self.leng = leng
-        for i in cord:
-            self.cord[f'{i}'] = leng
+        self.cord = cord
+
+    def hit_ship(self, board):
+        for i in self.cord:
+            if board.board[i] == "X":
+                continue
+            else:
+                return 'you hit ship'
+        board = self.destroy_ship(board)
+        return 'you destroy ship'
+
+    def destroy_ship(self,board):
+        x1, y1 = board.grey_zone(self.cord)
+        for i in y1:
+            for j in x1:
+                if board.board[f'{i}{j}'] == 0:
+                    board.board[f'{i}{j}'] = '*'
+        self.status = 'destroy'
+        board.shipslive[f'{self.leng} size'] -= 1
+        board.brokenships[f'{self.leng} size'] += 1
+        return board
+
+
 class Board:
 
     def __init__(self,name,x,y,ships):
         self.name = name
         self.flag = True
         self.__shipsorder = ships or {'4 size': 1,'3 size':2,'2 size':3,'1 size':4}
-        self.__shipslive = ships or {'4 size': 0,'3 size':0,'2 size':0,'1 size':0}
-        self.__brokenships = ships or {'4 size': 0,'3 size':0,'2 size':0,'1 size':0}
-        self.__board = {}
+        self.shipslive = ships or {'4 size': 0,'3 size':0,'2 size':0,'1 size':0}
+        self.brokenships = ships or {'4 size': 0,'3 size':0,'2 size':0,'1 size':0}
+        self.board = {}
         self.__x = x or (1,2,3,4,5,6,7,8,9,10)
         self.__y = y or 'abcdefghij'
         Board.cleanboard(self)
@@ -39,23 +55,26 @@ class Board:
         for j in range(len(self.__y)):
             print(self.__y[j],end = '  ')
             for i in range(len(self.__x)):
-                print(self.__board.get(f'{self.__y[j]}{self.__x[i]}'), end='  ')
+                z = self.board.get(f'{self.__y[j]}{self.__x[i]}')
+                if type(z) == Ships:
+                    z = 's'
+                print(z, end='  ')
             print('')
     def cleanboard(self):
         """
         Clear boards and stats ships live or broken
         :return: None
         """
-        for i in self.__shipslive:
-            self.__shipslive[i] = 0
-            self.__brokenships[i] = 0
+        for i in self.shipslive:
+            self.shipslive[i] = 0
+            self.brokenships[i] = 0
         if len(self.__x) == len(self.__y) and len(self.__x)>=8:
             for j in range(len(self.__y)):
                 for i in range(len(self.__x)):
-                    self.__board[f'{self.__y[j]}{self.__x[i]}'] = 0
+                    self.board[f'{self.__y[j]}{self.__x[i]}'] = 0
 
 
-    def addShips(self,leng,*pos):
+    def addShips(self,ship,leng,*pos):
         """
         добавляет корабль на доску, если он соответсвует правилам
         :param leng: длина корабля
@@ -64,11 +83,12 @@ class Board:
         """
         if leng == len(pos):
             if leng <= len(self.__shipsorder):
-                if self.__shipsorder[f'{leng} size'] > self.__shipslive[f'{leng} size']:
+                if self.__shipsorder[f'{leng} size'] > self.shipslive[f'{leng} size']:
                     if Board.cheks_ship(self, *pos):
+                        ship.cord = pos
                         for i in pos:
-                            self.__board[i] = 'L'
-                            self.__shipslive[f'{leng} size'] += 1
+                            self.board[i] = ship
+                            self.shipslive[f'{leng} size'] += 1
 
                     # elif leng == 1:
                     #     cords = list(startpos)
@@ -79,33 +99,51 @@ class Board:
             print("Strange input")
 
     def shot(self,cord):
-        f = self.__board.get(cord)
-        if f == 0:
-            self.__board[cord] = 'm'
+        f = self.board.get(cord)
+        if type(f) == Ships:
+            self.board[cord] = 'X'
+            res = f.hit_ship(self)
+            return res
+        elif f == 0:
+            self.board[cord] = '*'
             return 'miss'
-        elif f in 'm,d':
+        elif f in '*,X':
             return "you hit this place of previous shot. Try again"
-        elif f == 'l':
-            self.__board[cord] = 'd'
-            return 'you hit ships'
+
 
     def cheks_ship(self, *cords):
-        x1 = []
-        y1 = []
-        for g in cords:
-            if g != None:
-                e, f = list(g)
-                y1 = y1 + list(grey_zone(e, self.__y))
-                x1 = x1 + list(grey_zone(int(f), self.__x))
-        x1, y1 = set(x1), set(y1)
+        x1, y1 = self.grey_zone(cords)
         for i in y1:
             for j in x1:
-                if self.__board[f'{i}{j}'] == 0:
+                if self.board[f'{i}{j}'] == 0:
                     continue
                 #print(f"{i}{j}")
                 return False
         return True
 
-mywarboard = Board('myboard',None,None,None)
-mywarboard.printBoard()
-#print(myboard)
+    def grey_zone(self, cord):
+        x1 = []
+        y1 = []
+        for g in cord:
+            if g != None:
+                e, f = list(g)
+                y1 = y1 + list(grey_line(e, self.__y))
+                x1 = x1 + list(grey_line(int(f), self.__x))
+        x1, y1 = set(x1), set(y1)
+        return x1, y1
+
+def grey_line(e, y):
+    # print(e,y)
+    if y.index(e) == 0:
+        return y[0:2]
+    else:
+        return y[y.index(e) - 1:y.index(e) + 2]
+if '__main__' == __name__:
+    mywarboard = Board('myboard', None, None, None)
+    lodka = Ships(4, None, 0)
+    mywarboard.addShips(lodka, 4, "a1", "a2", "a3", "a4")
+    mywarboard.printBoard()
+    for i in ('a1', 'a4', 'a2', 'd3', 'a3'):
+        print(mywarboard.shot(i))
+    print(mywarboard)
+    mywarboard.printBoard()
