@@ -13,7 +13,7 @@ class Game_room:
         self.turn_to_shot = random.choice(players)
 
     def lobby(self):
-
+        pass
 
     def start(self):
         pass
