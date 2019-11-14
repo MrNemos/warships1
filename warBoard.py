@@ -129,11 +129,11 @@ class Board:
 
 
     def cheks_ship(self, *cords):
-        vector_i = []
-        vector_j = []
-        for i,j in cords:
-            vector_i = vector_i + i
-            vector_j = vector_j + j
+        vector_i = ''
+        vector_j = ''
+        for i in cords:
+            vector_i = vector_i + i[0]
+            vector_j = vector_j + i[1]
         if len(set(vector_j)) == 1 or len(set(vector_i)) == 1:
             x1, y1 = self.grey_zone(cords)
             for i in y1:
@@ -148,14 +148,23 @@ class Board:
     def grey_zone(self, cord):
         x1 = []
         y1 = []
+
         for g in cord:
             if g != None:
-                e, f = list(g)
+                print(g)
+                e, f = g[0],g[1]
                 y1 = y1 + list(grey_line(e, self.__y))
                 x1 = x1 + list(grey_line(int(f), self.__x))
         x1, y1 = set(x1), set(y1)
         return x1, y1
-
+def grey_line(e, y):
+    # print(e,y)
+    if y.index(e) == 0:
+        return y[0:2]
+    elif y[-1] == e:
+        return y[-2:-1]
+    else:
+        return y[y.index(e) - 1:y.index(e) + 2]
 
 class EnemyBoard(Board):
     def __init__(self,*args,**kwargs):
@@ -164,16 +173,11 @@ class EnemyBoard(Board):
     def shot(self,cord):
         pass
 
-def grey_line(e, y):
-    # print(e,y)
-    if y.index(e) == 0:
-        return y[0:2]
-    else:
-        return y[y.index(e) - 1:y.index(e) + 2]
+
 if '__main__' == __name__:
     mywarboard = Board('myboard', None, None, None)
     lodka = Ships(4, None, 0)
-    mywarboard.addShips(lodka, 4, "a1", "a2", "a3", "a4")
+    mywarboard.addShips(lodka, "j7", "j8", "j9", "j10")
     mywarboard.printBoard()
     for i in ('a1', 'a4', 'a2', 'd3', 'a3'):
         print(mywarboard.shot(i))
