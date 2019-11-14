@@ -60,6 +60,8 @@ class Board:
                     z = 's'
                 print(z, end='  ')
             print('')
+
+
     def cleanboard(self):
         """
         Clear boards and stats ships live or broken
@@ -93,6 +95,12 @@ class Board:
                             self.board[i] = ship
 
                         return 'ship enabled'
+                    else:
+                        print('Что-то пошло не так')
+                else:
+                    print('Лимит корабликов сего размера превышен')
+            else:
+                print("Размер кораблика слегка большеват")
         else:
             print("Strange input")
 
@@ -121,14 +129,21 @@ class Board:
 
 
     def cheks_ship(self, *cords):
-        x1, y1 = self.grey_zone(cords)
-        for i in y1:
-            for j in x1:
-                if self.board[f'{i}{j}'] == 0:
-                    continue
-                #print(f"{i}{j}")
-                return False
-        return True
+        vector_i = []
+        vector_j = []
+        for i,j in cords:
+            vector_i = vector_i + i
+            vector_j = vector_j + j
+        if len(set(vector_j)) == 1 or len(set(vector_i)) == 1:
+            x1, y1 = self.grey_zone(cords)
+            for i in y1:
+                for j in x1:
+                    if self.board[f'{i}{j}'] == 0:
+                        continue
+                    #print(f"{i}{j}")
+                    return False
+            return True
+        return False
 
     def grey_zone(self, cord):
         x1 = []
@@ -140,6 +155,14 @@ class Board:
                 x1 = x1 + list(grey_line(int(f), self.__x))
         x1, y1 = set(x1), set(y1)
         return x1, y1
+
+
+class EnemyBoard(Board):
+    def __init__(self,*args,**kwargs):
+        super.__init__(*args,**kwargs)
+
+    def shot(self,cord):
+        pass
 
 def grey_line(e, y):
     # print(e,y)
