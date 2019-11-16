@@ -27,7 +27,6 @@ class Ships:
 
 
 class Board:
-
     def __init__(self,name,x,y,ships):
         self.name = name
         self.flag = True
@@ -38,7 +37,6 @@ class Board:
         self.__x = x or (1,2,3,4,5,6,7,8,9,10)
         self.__y = y or 'abcdefghij'
         Board.cleanboard(self)
-
 
     def __repr__(self):
         """
@@ -61,7 +59,6 @@ class Board:
                 print(z, end='  ')
             print('')
 
-
     def cleanboard(self):
         """
         Clear boards and stats ships live or broken
@@ -74,76 +71,6 @@ class Board:
             for j in range(len(self.__y)):
                 for i in range(len(self.__x)):
                     self.board[f'{self.__y[j]}{self.__x[i]}'] = 0
-
-
-    def addShips(self,ship,*pos):
-        """
-        добавляет корабль на доску, если он соответсвует правилам
-        :param leng: длина корабля
-        :param pos: позиции корабля
-        :return: None
-        """
-        if not self.flag:
-            return 'you not change board, after start'
-        if ship.leng == len(pos):
-            if ship.leng <= len(self.__shipsorder):
-                if self.__shipsorder[f'{ship.leng} size'] > self.shipslive[f'{ship.leng} size']:
-                    if Board.cheks_ship(self, *pos):
-                        ship.cord = pos
-                        ship.status = 'live'
-                        for i in pos:
-                            self.board[i] = ship
-
-                        return 'ship enabled'
-                    else:
-                        print('Что-то пошло не так')
-                else:
-                    print('Лимит корабликов сего размера превышен')
-            else:
-                print("Размер кораблика слегка большеват")
-        else:
-            print("Strange input")
-
-    def remove_ship(self,ship):
-        if self.flag:
-            return 'you not remove ship, after start'
-        if ship.status == 'live':
-            self.shipslive[f'{ship.leng} size'] -= 1
-            ship.status = 'not a board'
-            for i in ship.cord:
-                self.board[i] = 0
-            return 'ship remove'
-
-
-    def shot(self,cord):
-        f = self.board.get(cord)
-        if type(f) == Ships:
-            self.board[cord] = 'X'
-            res = f.hit_ship(self)
-            return res
-        elif f == 0:
-            self.board[cord] = '*'
-            return 'miss'
-        elif f in '*,X':
-            return "you hit this place of previous shot. Try again"
-
-
-    def cheks_ship(self, *cords):
-        vector_i = ''
-        vector_j = ''
-        for i in cords:
-            vector_i = vector_i + i[0]
-            vector_j = vector_j + i[1]
-        if len(set(vector_j)) == 1 or len(set(vector_i)) == 1:
-            x1, y1 = self.grey_zone(cords)
-            for i in y1:
-                for j in x1:
-                    if self.board[f'{i}{j}'] == 0:
-                        continue
-                    #print(f"{i}{j}")
-                    return False
-            return True
-        return False
 
     def grey_zone(self, cord):
         x1 = []
@@ -171,11 +98,109 @@ class EnemyBoard(Board):
         super.__init__(*args,**kwargs)
 
     def shot(self,cord):
-        pass
+        #f =
+        if f == 'miss'
+            self.board[f'{cord}'] = '*'
+        if f == 'you hit ship'
+            self.board[f'{cord}'] = 'X'
+
+class MyBoard(Board):
+    def __init__(self,*args,**kwargs):
+        super.__init__(*args,**kwargs)
+
+    def addShips(self,ship,*pos):
+        """
+        добавляет корабль на доску, если он соответсвует правилам
+        :param ship: силка на кораблик
+        :param pos: позиции корабля
+        :return: None
+        """
+        if not self.flag:
+            return 'you not change board, after start'
+        if Board.cheks_ship(self, ship, *pos):
+            ship.cord = pos
+            ship.status = 'live'
+            for i in pos:
+                self.board[i] = ship
+            return 'ship enabled'
+        else:
+            return 'Что-то пошло не так'
+
+    def remove_ship(self,ship):
+        if self.flag:
+            return 'you not remove ship, after start'
+        if ship.status == 'live':
+            self.shipslive[f'{ship.leng} size'] -= 1
+            ship.status = 'not a board'
+            for i in ship.cord:
+                self.board[i] = 0
+            return 'ship remove'
+
+    def shot(self,cord):
+        f = self.board.get(cord)
+        if type(f) == Ships:
+            self.board[cord] = 'X'
+            res = f.hit_ship(self)
+            return res
+        elif f == 0:
+            self.board[cord] = '*'
+            return 'miss'
+        elif f in '*,X':
+            return "you hit this place of previous shot. Try again"
+
+    def cheks_ship(self, ship, *cords):
+        """
+        Сложный функция проверять кораблика на валидность очень сложна
+        :param self:
+        :param ship: кораблик
+        :param cords: координаты
+        :return: True or False
+        """
+        if ship.leng == len(cords):
+            if ship.leng <= len(self.__shipsorder):
+                if self.__shipsorder[f'{ship.leng} size'] > self.shipslive[f'{ship.leng} size']:
+                    vector_i = set()
+                    vector_j = set()
+                    for i in cords:
+                        vector_i = vector_i.add(i[0])
+                        vector_j = vector_j.add(i[1])
+                    if len(vector_j) == 1 or len(vector_i) == 1:
+                        if len(cords) > 1:
+                            if len(vector_i) != 1:
+                                z = checks_index(vector_i, self.__y)
+                            else:
+                                z = checks_index(vector_j, self.__x)
+                            if z:
+                                return False
+                        x1, y1 = self.grey_zone(cords)
+                        for i in y1:
+                            for j in x1:
+                                if self.board[f'{i}{j}'] == 0:
+                                    continue
+                                return False
+                        return True
+                    else:
+                        return False
+                else:
+                    return False
+            else:
+                return False
+        else:
+            return False
 
 
+def checks_index(res,lister):
+    res =  list(res)
+    res.sort()
+    j = lister.index(res[0])
+    for i in lister:
+        if j == lister.index(i):
+            j-=-1
+        else:
+            return False
+    return True
 if '__main__' == __name__:
-    mywarboard = Board('myboard', None, None, None)
+    mywarboard = MyBoard('myboard', None, None, None)
     lodka = Ships(4, None, 0)
     mywarboard.addShips(lodka, "j7", "j8", "j9", "j10")
     mywarboard.printBoard()
