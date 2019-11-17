@@ -1,4 +1,3 @@
-
 class Ships:
     def __init__(self, leng):
         self.status = 'not a board'
@@ -11,10 +10,10 @@ class Ships:
                 continue
             else:
                 return 'you hit ship'
-        board = self.destroy_ship(board)
+        self.destroy_ship(board)
         return 'you destroy ship'
 
-    def destroy_ship(self,board):
+    def destroy_ship(self, board):
         x1, y1 = board.grey_zone(self.cord)
         for i in y1:
             for j in x1:
@@ -27,17 +26,16 @@ class Ships:
 
 
 class Board:
-    def __init__(self,name):
+    def __init__(self, name):
         self.name = name
         self.flag = True
-        self.__shipsorder = {'4 size': 1,'3 size':2,'2 size':3,'1 size':4}
-        self.shipslive = {'4 size': 0,'3 size':0,'2 size':0,'1 size':0}
-        self.brokenships = {'4 size': 0,'3 size':0,'2 size':0,'1 size':0}
+        self.__shipsorder = {'4 size': 1, '3 size': 2, '2 size': 3, '1 size': 4}
+        self.shipslive = {'4 size': 0, '3 size': 0, '2 size': 0, '1 size': 0}
+        self.brokenships = {'4 size': 0, '3 size': 0, '2 size': 0, '1 size': 0}
         self.board = {}
-        self.__x = (1,2,3,4,5,6,7,8,9,10)
+        self.__x = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
         self.__y = 'abcdefghij'
         Board.cleanboard(self)
-
 
     def __repr__(self):
         """
@@ -50,9 +48,9 @@ class Board:
         Print board for matrix form
         :return: none
         """
-        print("   " + str(self.__x).strip("()").replace(","," "))
+        print("   " + str(self.__x).strip("()").replace(",", " "))
         for j in range(len(self.__y)):
-            print(self.__y[j],end = '  ')
+            print(self.__y[j], end='  ')
             for i in range(len(self.__x)):
                 z = self.board.get(f'{self.__y[j]},{self.__x[i]}')
                 if type(z) == Ships:
@@ -63,12 +61,15 @@ class Board:
     @property
     def shiporder(self):
         return self.__shipsorder
+
     @property
     def x(self):
         return self.__x
+
     @property
     def y(self):
         return self.__y
+
     def cleanboard(self):
         """
         Clear boards and stats ships live or broken
@@ -77,33 +78,45 @@ class Board:
         for i in self.shipslive:
             self.shipslive[i] = 0
             self.brokenships[i] = 0
-        if len(self.__x) == len(self.__y) and len(self.__x)>=8:
+        if len(self.__x) == len(self.__y) and len(self.__x) >= 8:
             for j in range(len(self.__y)):
                 for i in range(len(self.__x)):
                     self.board[f'{self.__y[j]},{self.__x[i]}'] = 0
 
     def grey_zone(self, cord):
+        if type(cord) is str:
+            cord = [cord, '']
         x1 = []
         y1 = []
-
+        #print(cord)
         for g in cord:
-            if g != None:
+            if len(g) > 2:
                 #print(g)
-                e, f = g[0],g[2:]
+                e, f = g[0], g[2:]
+                #print(e, f)
                 y1 = y1 + list(grey_line(e, self.__y))
                 x1 = x1 + list(grey_line(int(f), self.__x))
+
         x1, y1 = set(x1), set(y1)
+        #print(x1, y1)
         return x1, y1
+
+
 def grey_line(e, y):
     # print(e,y)
     if y.index(e) == 0:
         return y[0:2]
     elif y[-1] == e:
-        return y[-2:-1]
+        return y[-2:]
     else:
         return y[y.index(e) - 1:y.index(e) + 2]
 
+
 class EnemyBoard(Board):
+
+    def __init__(self, name):
+        super().__init__(name)
+        self.active_target = None
 
     def shot(self, cord, board):
         z, f = board.shot(cord)
@@ -111,26 +124,44 @@ class EnemyBoard(Board):
             self.board[f'{cord}'] = '*'
         elif f == 'you hit ship':
             self.board[f'{cord}'] = 'X'
+            self.active_target = cord
         elif f == 'you destroy ship':
             self.board[f'{cord}'] = 'X'
-
+            print(self.no_ships_zone(cord))
         return z
 
-    def No_ships_zone(self, cord):
-        x1, y1 =self.grey_zone(cord)
+    def no_ships_zone(self, cord):
+        #print('--------------------------------')
+        if type(cord) is str:
+            cord = [cord, '']
+        flag = False
+        x1, y1 = self.grey_zone(cord)
+        #print(x1, y1, cord, end='')
         for y in y1:
             for x in x1:
-                if self.board.get(f'{y},{x}') == 0:
-                    self.board[f'{y},{x}'] = '*'
-                elif self.board[f'{y},{x}'] == 'X':
-                    x2, y2 = self.grey_zone(f'{y},{x}')
-                    x1.add(x2)
-                    y2.add(y2)
+                if self.board[f'{y},{x}'] == 'X':
+                    if f'{y},{x}' not in cord:
+                        cord.append(f'{y},{x}')
+                        self.no_ships_zone(cord)
+                    else:
+                        flag = True
+        if len(cord) == 4 or flag:
+            for y in y1:
+                for x in x1:
+                    if self.board[f'{y},{x}'] == 0:
+                        self.board[f'{y},{x}'] = '*'
+
+
+
+
+
+
+        return 'ship destroy'
+
 
 class MyBoard(Board):
     def __init__(self, name):
         super().__init__(name)
-
 
     def addShips(self, ship, *pos):
         """
@@ -160,7 +191,7 @@ class MyBoard(Board):
                 self.board[i] = 0
             return 'ship remove'
 
-    def shot(self,cord):
+    def shot(self, cord):
         f = self.board.get(cord)
         if type(f) == Ships:
             self.board[cord] = 'X'
@@ -193,7 +224,7 @@ class MyBoard(Board):
                                 z = checks_index(vector_i, self.y)
                             else:
                                 z = checks_index(vector_j, self.x)
-                            if z:
+                            if not z:
                                 return False
                         x1, y1 = self.grey_zone(cords)
                         for i in y1:
@@ -212,21 +243,24 @@ class MyBoard(Board):
             return False
 
 
-def checks_index(res,lister):
-    res =  list(res)
+def checks_index(res, lister):
+    res = list(res)
     res.sort()
     if res[0] in lister:
         j = lister.index(res[0])
     else:
-        map(int(), res)
+        res = list(map(int, res))
+        res.sort()
         j = lister.index(int(res[0]))
     for i in res:
-        print(i,lister[j], end='')
+        # print(type(i),type(lister[j]), end='')
         if j == lister.index(i):
-            j-=-1
+            j -= -1
         else:
             return False
     return True
+
+
 if '__main__' == __name__:
     mywarboard = MyBoard('myboard')
     warboard = EnemyBoard('warboard')
@@ -237,11 +271,12 @@ if '__main__' == __name__:
 
     print(mywarboard.addShips(lodka4, "j,7", "j,8", "j,9", "j,10"))
     print(mywarboard.addShips(lodka3, "a,2", "b,2", "c,2"))
-    print(mywarboard.addShips(lodka2, "f,5", "f,4",))
+    print(mywarboard.addShips(lodka2, "f,5", "f,4", ))
     print(mywarboard.addShips(lodka1, "a,9"))
 
-    mywarboard.printBoard()
+    # mywarboard.printBoard()
     for i in ('a,1', 'a,9', 'a,2', 'd,3', 'a,3', 'b,2', 'c,2', 'j,7', 'j,8', 'j,9', 'j,10'):
         print(warboard.shot(i, mywarboard))
     print(mywarboard)
     mywarboard.printBoard()
+    warboard.printBoard()
