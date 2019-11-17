@@ -130,6 +130,14 @@ class EnemyBoard(Board):
             print(self.no_ships_zone(cord))
         return z
 
+    def not_hit_point(self):
+        hit_list = []
+        for y in self.__y:
+            for x in self.__x:
+                if self.board[f'{y},{x}'] == 0:
+                    hit_list.append(self.board[f'{x},{y}'])
+
+
     def no_ships_zone(self, cord):
         #print('--------------------------------')
         if type(cord) is str:
