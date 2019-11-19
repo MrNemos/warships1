@@ -28,13 +28,13 @@ class Ships:
 class Board:
     def __init__(self, name):
         self.name = name
-        self.flag = True
+        self.__flag = True
         self.__shipsorder = {'4 size': 1, '3 size': 2, '2 size': 3, '1 size': 4}
         self.shipslive = {'4 size': 0, '3 size': 0, '2 size': 0, '1 size': 0}
         self.brokenships = {'4 size': 0, '3 size': 0, '2 size': 0, '1 size': 0}
         self.board = {}
         self.__x = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-        self.__y = 'abcdefghij'
+        self.__y = ('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j')
         Board.cleanboard(self)
 
     def __repr__(self):
@@ -57,6 +57,15 @@ class Board:
                     z = 's'
                 print(z, end='  ')
             print('')
+
+    @property
+    def flag(self):
+        return self.__flag
+
+    @flag.setter
+    def flag(self, other):
+        if not self.__flag:
+            self.__flag = other
 
     @property
     def shiporder(self):
@@ -88,17 +97,17 @@ class Board:
             cord = [cord, '']
         x1 = []
         y1 = []
-        #print(cord)
+        # print(cord)
         for g in cord:
             if len(g) > 2:
-                #print(g)
+                # print(g)
                 e, f = g[0], g[2:]
-                #print(e, f)
+                # print(e, f)
                 y1 = y1 + list(grey_line(e, self.__y))
                 x1 = x1 + list(grey_line(int(f), self.__x))
 
         x1, y1 = set(x1), set(y1)
-        #print(x1, y1)
+        # print(x1, y1)
         return x1, y1
 
 
@@ -137,14 +146,13 @@ class EnemyBoard(Board):
                 if self.board[f'{y},{x}'] == 0:
                     hit_list.append(self.board[f'{x},{y}'])
 
-
     def no_ships_zone(self, cord):
-        #print('--------------------------------')
+        # print('--------------------------------')
         if type(cord) is str:
             cord = [cord, '']
         flag = False
         x1, y1 = self.grey_zone(cord)
-        #print(x1, y1, cord, end='')
+        # print(x1, y1, cord, end='')
         for y in y1:
             for x in x1:
                 if self.board[f'{y},{x}'] == 'X':
@@ -158,11 +166,6 @@ class EnemyBoard(Board):
                 for x in x1:
                     if self.board[f'{y},{x}'] == 0:
                         self.board[f'{y},{x}'] = '*'
-
-
-
-
-
 
         return 'ship destroy'
 
@@ -269,13 +272,27 @@ def checks_index(res, lister):
     return True
 
 
+def genShip():
+    lodka4 = Ships(4)
+
+    lodka3_1 = Ships(3)
+    lodka3_2 = Ships(3)
+
+    lodka2_1 = Ships(2)
+    lodka2_2 = Ships(2)
+    lodka2_3 = Ships(2)
+
+    lodka1_1 = Ships(1)
+    lodka1_2 = Ships(1)
+    lodka1_3 = Ships(1)
+    lodka1_4 = Ships(1)
+
+    return [lodka1_1, lodka1_2, lodka1_3, lodka1_4, lodka2_1, lodka2_2, lodka3_1, lodka2_3, lodka3_2, lodka4]
+
+
 if '__main__' == __name__:
     mywarboard = MyBoard('myboard')
     warboard = EnemyBoard('warboard')
-    lodka4 = Ships(4)
-    lodka3 = Ships(3)
-    lodka2 = Ships(2)
-    lodka1 = Ships(1)
 
     print(mywarboard.addShips(lodka4, "j,7", "j,8", "j,9", "j,10"))
     print(mywarboard.addShips(lodka3, "a,2", "b,2", "c,2"))
